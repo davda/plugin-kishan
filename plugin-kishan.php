@@ -26,30 +26,35 @@ $options_url_twitter = get_option('settings');
 
 
 
-require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
 //// To create custom database table
 
 
 function pw_sample_plugin_create_table() {
- 
-	$created = dbDelta(
-	  "CREATE TABLE leoplesss (
-		ID bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		first_name varchar(60) NOT NULL DEFAULT '',
-		last_name varchar(64) NOT NULL DEFAULT '',
-		email varchar(100) NOT NULL DEFAULT '',
-		PRIMARY KEY (ID),
-		KEY email (email)
-	  ) CHARACTER SET utf8 COLLATE utf8_general_ci;"
-	);
+	global $wpdb;
+$charset_collate = $wpdb->get_charset_collate();
+
+$sql = "CREATE TABLE `book_meta_dataa` (
+		ID INTEGER NOT NULL AUTO_INCREMENT,
+		author_name TEXT NOT NULL,
+		price bigint(64),
+		publisher text DEFAULT '',
+		isbn text DEFAULT '',
+		yr text  DEFAULT '',
+		edi text  DEFAULT '',
+		ur text  DEFAULT '',
+	PRIMARY KEY (ID)
+) $charset_collate;";
+
+require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+dbDelta($sql);
 	
   }
   register_activation_hook( __FILE__, 'pw_sample_plugin_create_table' );
 
 
   global $wpdb;
-  $table = 'leoplesss';
+  $table = 'book_meta_dataa';
 /*$data = array('first_name' => 'Kishan', 'last_name' => 'Kishan', 'email' => 'kishan.davda');
 $format = array('%s','%d');
 $a=$wpdb->insert($table,$data);
@@ -291,6 +296,7 @@ add_action('add_meta_boxes', 'book_info_meta_box');
 function book_info_meta_box_html($post)
 {
     ?>
+	<form method="post">
     <table align="center">
 	<tr>
 		<td><label for="author_nm">Author Name</label></td>
@@ -321,9 +327,18 @@ function book_info_meta_box_html($post)
 		<td><input type="text" name="url" id="url"/></td>
 	</tr>
 	</table>
+	</form>
 <?php } 
 
-
+if(array_key_exists('publish',$_POST)){
+	save_meta();
+ }
+function save_meta()
+{
+	global $wpdb;
+	$table = 'book_meta_dataa';
+	$a= $wpdb->insert( $table, array('author_name' => $_POST['author_nm'], 'price' => $_POST['price'], 'publisher' => $_POST['publ'], 'isbn' => $_POST['isbn'], 'yr' => $_POST['year'], 'edi' => $_POST['edition'], 'ur' => $_POST['url']));
+}
 
 /**
  * Add a widget to the dashboard.
@@ -580,3 +595,34 @@ function register_custom_widget() {
 	register_widget( 'custom_widget' );
 	}
 	add_action( 'widgets_init', 'register_custom_widget' );
+
+
+
+
+	
+//Short Code 
+// Create Shortcode book
+function pw_sample_plugin_shortcode($atts) {
+
+	$atts = shortcode_atts(
+		array(
+			'id' => '',
+			'author_name' => '',
+			'year' => '',
+			'category' => '',
+			'tag' => '',
+			'publisher' => '',
+		),
+		$atts,
+		'book'
+	);
+
+	$id = $atts['id'];
+	$author_name = $atts['author_name'];
+	$year = $atts['year'];
+	$category = $atts['category'];
+	$tag = $atts['tag'];
+	$publisher = $atts['publisher'];
+
+}
+add_shortcode( 'book', 'pw_sample_plugin_shortcode' );
